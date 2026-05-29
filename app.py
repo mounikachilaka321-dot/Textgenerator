@@ -1,22 +1,10 @@
-# app.py
-
 import streamlit as st
 from transformers import pipeline
-
-# -----------------------------------
-# Page Configuration
-# -----------------------------------
-
-st.set_page_config(
-    page_title="AI NLP App",
-    page_icon="🤖",
-    layout="centered"
-)
 
 st.title("🤖 AI NLP Demo App")
 
 # -----------------------------------
-# Sentiment Analysis Section
+# Sentiment Analysis
 # -----------------------------------
 
 st.header("Sentiment Analysis")
@@ -30,42 +18,43 @@ samples = [
     "I bought a new notebook yesterday."
 ]
 
-# Load sentiment model
-emotion = pipeline(
-    "sentiment-analysis",
-    model="tabularisai/robust-sentiment-analysis"
-)
+@st.cache_resource
+def load_sentiment_model():
+    return pipeline(
+        "sentiment-analysis",
+        model="distilbert-base-uncased-finetuned-sst-2-english"
+    )
 
-if st.button("Analyze Sentiments"):
+emotion = load_sentiment_model()
+
+if st.button("Analyze Sentiment"):
 
     for text in samples:
 
         result = emotion(text)
 
-        label = result[0]['label']
-        score = result[0]['score']
-
-        st.write(f"### Sentence")
-        st.write(text)
-
-        st.write(f"**Sentiment:** {label}")
-        st.write(f"**Confidence Score:** {score:.4f}")
-
-        st.write("---")
+        st.write(f"### {text}")
+        st.write(result)
 
 # -----------------------------------
-# Text Generation Section
+# Text Generation
 # -----------------------------------
 
 st.header("Text Generation")
 
+@st.cache_resource
+def load_generator():
+    return pipeline(
+        "text-generation",
+        model="distilgpt2"
+    )
+
+generator = load_generator()
+
 prompt = st.text_input(
-    "Enter your prompt",
+    "Enter Prompt",
     "Artificial Intelligence will"
 )
-
-# Load text generation model
-generator = pipeline("text-generation")
 
 if st.button("Generate Text"):
 
@@ -75,7 +64,4 @@ if st.button("Generate Text"):
         num_return_sequences=1
     )
 
-    generated_text = output[0]['generated_text']
-
-    st.write("### Generated Output")
-    st.write(generated_text)
+    st.write(output[0]["generated_text"])
